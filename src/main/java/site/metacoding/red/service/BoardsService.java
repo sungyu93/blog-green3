@@ -16,7 +16,6 @@ import site.metacoding.red.web.dto.request.boards.WriteDto;
 import site.metacoding.red.web.dto.response.boards.DetailDto;
 import site.metacoding.red.web.dto.response.boards.MainDto;
 import site.metacoding.red.web.dto.response.boards.PagingDto;
-import site.metacoding.red.web.dto.response.loves.LovesDto;
 
 @RequiredArgsConstructor
 @Service
@@ -27,25 +26,26 @@ public class BoardsService {
 	private final LovesDao lovesDao;
 
 	public void 좋아요취소(Integer id) {
+		lovesDao.deleteById(id);
+	}
 
-	}
-	
-	public void 좋아요(Loves loves) {
+	public Loves 좋아요(Loves loves) {
 		lovesDao.insert(loves);
+		return loves;
 	}
-	
+
 	public PagingDto 게시글목록보기(Integer page, String keyword) {
 		if (page == null) {
 			page = 0;
 		}
 		int startNum = page * PagingDto.ROW;
 		System.out.println("==========");
-		System.out.println("keyword : "+keyword);
+		System.out.println("keyword : " + keyword);
 		System.out.println("==========");
-		
+
 		List<MainDto> boardsList = boardsDao.findAll(startNum, keyword, PagingDto.ROW);
 		PagingDto pagingDto = boardsDao.paging(page, keyword, PagingDto.ROW);
-		
+
 		if (boardsList.size() == 0)
 			pagingDto.setNotResult(true);
 		pagingDto.makeBlockInfo(keyword);
@@ -55,17 +55,9 @@ public class BoardsService {
 	}
 
 	public DetailDto 게시글상세보기(Integer id, Integer principalId) {
-		System.out.println("게시글 id : "+id);
-		Boards boardsPS = boardsDao.findById(id);
-		LovesDto lovesDto = lovesDao.findByBoardsId(id, principalId);	
-		if(lovesDto == null) {
-			lovesDto = new LovesDto();
-			lovesDto.setCount(0);
-			lovesDto.setLoved(false);
-		}
-		return new DetailDto(boardsPS, lovesDto);
+		return boardsDao.findByDetail(id, principalId);
 	}
-	
+
 	public Boards 게시글수정화면데이터가져오기(Integer id) {
 		return boardsDao.findById(id);
 	}
@@ -73,8 +65,8 @@ public class BoardsService {
 	public void 게시글수정하기(Integer id, UpdateDto updateDto) {
 		// 1. 영속화
 		Boards boardsPS = boardsDao.findById(id);
-		
-		if(boardsPS == null) {
+
+		if (boardsPS == null) {
 			// 이 부분은 나중에 처리!! (exception 처리하는 법 따로 배울 예정)
 		}
 
@@ -87,7 +79,7 @@ public class BoardsService {
 
 	public void 게시글삭제하기(Integer id) {
 		Boards boardsPS = boardsDao.findById(id);
-		if(boardsPS == null) {
+		if (boardsPS == null) {
 			// 이 부분은 나중에 처리!! (exception 처리하는 법 따로 배울 예정)
 		}
 		boardsDao.deleteById(id);
